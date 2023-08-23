@@ -10,16 +10,15 @@ export default function useVisualMode(initial) {
     setHistory((prev) => [...prev.slice(0, prev.length-1), mode])
     }
 
-    console.log(history, "in transition")
   }
 
 
   function back() {
-    if (history.length < 1) {
+    if (history.length <= 1) {
+      console.log(history)
       return
     }
     setHistory((prev) => [...prev.slice(0,prev.length-1)])
-    console.log(history, "in back")
   }
 
   return { mode: history[history.length-1], transition, back, history }

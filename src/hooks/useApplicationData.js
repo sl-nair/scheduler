@@ -9,6 +9,14 @@ export default function useApplicationData() {
     appointments: {},
     interviewers: {}
   });
+
+  const updateSpots = (appointments, appointmentId) => {
+    const currentDay = state.days.find((day)=> day.appointments.includes(appointmentId));
+    const spots = currentDay.appointments.filter(id => appointments[id].interview === null).length
+
+    return state.days.map(day => day.name === currentDay.name ? { ...day, spots } : day)
+  }
+
   //add interview to database
   const bookInterview = function (id, interview) {
     const appointment = {
@@ -19,21 +27,12 @@ export default function useApplicationData() {
       ...state.appointments,
       [id]: appointment
     };
-    const currentDay = state.days.find((day)=> day.appointments.includes(id));
-    const newDays = state.days.map((day) => {
-      if(
-        day.name === currentDay.name && state.appointments[id].interview === null
-      ) {
-        return {...day, spots: day.spots - 1};
-      } else {
-        return day;
-      }
-    })
-
+    
     return axios.put(`/api/appointments/${id}`, appointment).then(() => {
-      setState({ ...state, appointments, newDays });
+      setState({ ...state, appointments, days: updateSpots(appointments, id) });
     });
   };
+
   //remove interview from database 
   const cancelInterview = function (id) {
     const appointment = {
@@ -45,18 +44,8 @@ export default function useApplicationData() {
       [id]: appointment
     }
 
-    const currentDay = state.days.find((day) => day.appointments.includes(id));
-    const newDays = state.days.map((day) => {
-      if(
-        day.name === currentDay.name
-      ) {
-        return {...day, spots: day.spots + 1};
-      } else {
-        return day;
-      }
-    })
     return axios.delete(`/api/appointments/${id}`).then(() => {
-      setState({ ...state, appointments, newDays });
+      setState({ ...state, appointments, days: updateSpots(appointments, id) });
     })
   }
 
